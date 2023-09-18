@@ -1,10 +1,14 @@
 import argparse
+from asyncio.windows_events import NULL
 import socket
 import sys
 from time import sleep
 
 host = socket.gethostbyname(socket.gethostname())
-port = sys.argv[1]
+if sys.argv.__sizeof__() == 1:
+    port = sys.argv[1]
+else:
+    port = 5959
 
 def print_menu():
     print("******************* Welcome to CrossTok *****************\n")
@@ -31,9 +35,11 @@ def main():
         match user_choice:
             case "MYIP":
                 print(socket.gethostbyname(socket.gethostname()) + "\n")
+            case "MYPORT":
+                print(str(port) + "\n")
             case "SEND":
                 print("sent")
-            case "EXIT":
+            case "TERMINATE":
                 print("Sorry to see you go!")
                 sleep(1)
                 quit()
