@@ -1,14 +1,11 @@
-import argparse
 from asyncio.windows_events import NULL
-from email import message
 import socket
-from sqlite3 import connect
 import sys
 import threading
-from time import sleep
 
 host = socket.gethostbyname(socket.gethostname())
 port = 0
+max_conn = 10
 connections = []
 
 if sys.argv.__sizeof__() == 1:
@@ -53,7 +50,7 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
-    server.listen()
+    server.listen(max_conn)
     
     while True: 
         print_help()
@@ -71,10 +68,10 @@ def main():
             print_help()
         elif (user_choice[0] == "CONNECT"):
             target_ip = user_choice[1]
-            target_port = user_choice[2]
+            target_port = int(user_choice[2])
             try:
                 target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                target_socket.connect((target_ip, target_port))
+                target_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
                 connections.append((target_ip, target_port))
                 print(f"Successfully Connected to : {target_ip}:{target_port}")
                 threading.Thread(target=incoming_message_handler, args=(target_socket, target_ip, target_port)).start()
