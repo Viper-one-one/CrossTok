@@ -3,15 +3,28 @@ import socket
 import sys
 import threading
 
+#TODO: implement a server socket and a client socket
+#TODO: server socket will bind, listen, accept, loop thru recv, send; close
+#TODO: client socket will connect, loop thru send, recv; close
+#
+#
+#
+
 host = socket.gethostbyname(socket.gethostname())
-port = 0
+port = 5959
 max_conn = 10
-connections = []
+connections = []    #stored as (IP, Port) pairs
 
 if sys.argv.__sizeof__() == 1:
     port = sys.argv[1]
-else:
-    port = 5959
+
+#server function
+#needs to listen on port for new connections, add to connection list when new connection spawned
+def port_listener(server, host, port):
+    while True:
+        connections.append((host, port))
+        ip_address, port = server.accept()
+        
 
 def print_help():
     print("******************* Welcome to CrossTok *****************\n")
@@ -51,8 +64,10 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     server.listen(max_conn)
+    threading.Thread(target=port_listener, args=(server,host, port)).start()
     
     while True: 
+        
         print_help()
         print("CMD: ", end='')  
         user_choice = input()
