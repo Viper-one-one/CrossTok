@@ -42,7 +42,7 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
             if message == "exit":
                 print(f"User {sender_addr} on port {sender_port} disconnected")
                 break
-            print(f"Message from {sender_addr}")
+            print(f"\nMessage from {sender_addr}")
             print(f"Sender's Port: {sender_port}")
             print(f"Message: \"{message}\"")
         except Exception as e:
@@ -51,19 +51,18 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
     target_socket.close()
     connections.remove((sender_addr, sender_port))
 
-# TODO: make connect and list work
-# TODO: list should find all unique connected clients, store conn list in list
-# TODO: new connections establishing TCP link should be checked against list, then added if unique
-# TODO: connect should ping the target ip with TCP connection request which triggers addition to the connected clients list
+# TODO: make terminate and send work
+# TODO: terminate error: connection number does not exist
+# TODO: send error: "something went wrong, check id, try again"
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, listen_port))
     server.listen(max_conn)
+    threading.Thread(target=connection_handler, args=(server, )).start()    
+    print_help()
     
     while True: 
-        threading.Thread(target=connection_handler, args=(server, )).start()
-        print_help()
         print("CMD: ", end='')  
         user_choice = input()
         user_choice = user_choice.split()
@@ -77,16 +76,19 @@ def main():
         elif (user_choice[0] == "HELP"):
             print_help()
         elif (user_choice[0] == "CONNECT"):
-            target_ip = user_choice[1]
-            target_port = int(user_choice[2])
-            try:
-                target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                target_socket.connect((target_ip, target_port))
-                connections.append((target_ip, target_port))
-                print(f"Successfully Connected to : {target_ip}:{target_port}")
-                threading.Thread(target=incoming_message_handler, args=(target_socket, target_ip, target_port)).start()
-            except Exception as e:
-                print(f"Failed due to: {e}")
+            if len(user_choice) == 3:
+                target_ip = user_choice[1]
+                target_port = int(user_choice[2])
+                try:
+                    target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    target_socket.connect((target_ip, target_port))
+                    connections.append((target_ip, target_port))
+                    print(f"Successfully Connected to : {target_ip}:{target_port}")
+                    threading.Thread(target=incoming_message_handler, args=(target_socket, target_ip, target_port)).start()
+                except Exception as e:
+                    print(f"Failed due to: {e}")
+            else:
+                print("Error: please use connect <dest_ip> <port#>")
         elif (user_choice[0] == "LIST"):
             print("Connection list: ")
             for i, (conn_ip, conn_port) in enumerate(connections, start=0):
@@ -100,16 +102,19 @@ def main():
             except Exception as e:
                 print("Did you enter an ip or wrong number? Try entering a valid connection\nCheck out LIST for valid entries")
         elif (user_choice[0] == "SEND"):
-            try:
-                conn_id = int(user_choice[1])
-                conn_ip, conn_port = connections[conn_id]
-                message = user_choice[2:]
-                print(f"Sending to {conn_id}...")
-                target = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                target.connect((conn_ip, conn_port))
-                target.sendall(message)
-            except Exception as e:
-                print("Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!")
+            if len(user_choice) >= 3:
+                try:
+                    conn_id = int(user_choice[1])
+                    conn_ip, conn_port = connections[conn_id]
+                    message = user_choice[2:]
+                    print(f"Sending to {conn_id}...")       #fails after here
+                    target = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    target.connect((conn_ip, conn_port))            #this is being read as a socket type, must be str, byte, or bytearray
+                    target.send(message)
+                except Exception as e:          #hits this 
+                    print("Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!")
+            else:
+                print("Error: please use send <conn_id> <message...>")
         elif (user_choice[0] == "EXIT"):
             for conn_ip, conn_port in connections:
                 try:
