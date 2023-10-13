@@ -3,15 +3,18 @@ import socket
 import sys
 import threading
 
+#TODO: implement a server socket and a client socket
+#TODO: server socket will bind, listen, accept, loop thru recv, send; close
+#TODO: client socket will connect, loop thru send, recv; close
+
 host = socket.gethostbyname(socket.gethostname())
-port = 0
+listen_port = 5959
 max_conn = 10
-connections = []
+connections = []    #stored as (IP, Port) pairs
 
 if sys.argv.__sizeof__() == 1:
-    port = sys.argv[1]
-else:
-    port = 5959
+    listen_port = sys.argv[1]
+      
 
 def print_help():
     print("******************* Welcome to CrossTok *****************\n")
@@ -30,6 +33,7 @@ def connection_handler(listen_socket):
     while True:
         conn, addr = listen_socket.accept()
         connections.append((conn, addr))
+        conn.send("connection recieved".encode(encoding='utf-8'))
     
 def incoming_message_handler(target_socket, sender_addr, sender_port):
     while True:
@@ -54,11 +58,11 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((host, port))
+    server.bind((host, listen_port))
     server.listen(max_conn)
-    threading.Thread(target=connection_handler, args=(server, )).start()
     
     while True: 
+        threading.Thread(target=connection_handler, args=(server, )).start()
         print_help()
         print("CMD: ", end='')  
         user_choice = input()
@@ -69,7 +73,7 @@ def main():
         if (user_choice[0] == "MYIP"):
             print("Your IP Address: " + socket.gethostbyname(socket.gethostname()) + "\n")
         elif (user_choice[0] == "MYPORT"):
-            print("Your port: " + str(port) + "\n")
+            print("Your port: " + str(listen_port) + "\n")
         elif (user_choice[0] == "HELP"):
             print_help()
         elif (user_choice[0] == "CONNECT"):
@@ -100,7 +104,7 @@ def main():
                 conn_id = int(user_choice[1])
                 conn_ip, conn_port = connections[conn_id]
                 message = user_choice[2:]
-                print(f"Sending to {id}...")
+                print(f"Sending to {conn_id}...")
                 target = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 target.connect((conn_ip, conn_port))
                 target.sendall(message)
