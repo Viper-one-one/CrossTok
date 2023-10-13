@@ -51,18 +51,17 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
     target_socket.close()
     connections.remove((sender_addr, sender_port))
 
-# TODO: make connect and list work
-# TODO: list should find all unique connected clients, store conn list in list
-# TODO: new connections establishing TCP link should be checked against list, then added if unique
-# TODO: connect should ping the target ip with TCP connection request which triggers addition to the connected clients list
+# TODO: make terminate and send work
+# TODO: terminate error: connection number does not exist
+# TODO: send error: "something went wrong, check id, try again"
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, listen_port))
     server.listen(max_conn)
-    
+    threading.Thread(target=connection_handler, args=(server, )).start()    
+
     while True: 
-        threading.Thread(target=connection_handler, args=(server, )).start()
         print_help()
         print("CMD: ", end='')  
         user_choice = input()
