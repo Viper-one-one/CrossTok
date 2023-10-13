@@ -55,6 +55,9 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
 # TODO: terminate error: connection number does not exist
 # TODO: send error: "something went wrong, check id, try again"
 
+# currently creating new sockets on each new connection, ths is likely incorrect
+# send procedure with split user input likely needs change, probably cannot do message = user_choice[2:]
+
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, listen_port))
@@ -63,6 +66,8 @@ def main():
     print_help()
     
     while True: 
+        threading.Thread(target=connection_handler, args=(server, )).start()
+        print_help()
         print("CMD: ", end='')  
         user_choice = input()
         user_choice = user_choice.split()
@@ -133,5 +138,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
