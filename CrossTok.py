@@ -17,10 +17,12 @@ connections = []    #stored as (IP, Port) pairs
 
 if sys.argv.__sizeof__() == 1:
     port = sys.argv[1]
+else:
+    pass
 
 #server function
 #needs to listen on port for new connections, add to connection list when new connection spawned
-def port_listener(server, host, port):
+def server_func(server, host, port):
     while True:
         connections.append((host, port))
         ip_address, port = server.accept()
@@ -54,6 +56,9 @@ def incoming_message_handler(target_socket, sender_addr, sender_port):
             break
     target_socket.close()
     connections.remove((sender_addr, sender_port))
+    
+def client_func():
+    return 0
 
 # TODO: make connect and list work
 # TODO: list should find all unique connected clients, store conn list in list
@@ -64,7 +69,7 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     server.listen(max_conn)
-    threading.Thread(target=port_listener, args=(server,host, port)).start()
+    threading.Thread(target=server_func, args=(server,host, port)).start()
     
     while True: 
         
