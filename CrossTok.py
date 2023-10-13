@@ -63,6 +63,8 @@ def main():
     print_help()
     
     while True: 
+        threading.Thread(target=connection_handler, args=(server, )).start()
+        print_help()
         print("CMD: ", end='')  
         user_choice = input()
         user_choice = user_choice.split()
