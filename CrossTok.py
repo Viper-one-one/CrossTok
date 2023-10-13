@@ -26,11 +26,16 @@ def print_help():
     print("EXIT: terminate CrossTok and all active connections\n")
     print("\n")    
     
+def connection_handler(listen_socket):
+    while True:
+        conn, addr = listen_socket.accept()
+        connections.append((conn, addr))
+    
 def incoming_message_handler(target_socket, sender_addr, sender_port):
     while True:
         try:
             message = target_socket.recv(2048).decode('utf-8')
-            if message == NULL:
+            if message == "exit":
                 print(f"User {sender_addr} on port {sender_port} disconnected")
                 break
             print(f"Message from {sender_addr}")
@@ -51,6 +56,7 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port))
     server.listen(max_conn)
+    threading.Thread(target=connection_handler, args=(server, )).start()
     
     while True: 
         print_help()
@@ -71,7 +77,7 @@ def main():
             target_port = int(user_choice[2])
             try:
                 target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                target_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
+                target_socket.connect((target_ip, target_port))
                 connections.append((target_ip, target_port))
                 print(f"Successfully Connected to : {target_ip}:{target_port}")
                 threading.Thread(target=incoming_message_handler, args=(target_socket, target_ip, target_port)).start()
