@@ -15,7 +15,7 @@ port = 5959
 max_conn = 10
 connections = []    #stored as (IP, Port) pairs
 
-if len(sys.argv) > 1:
+if sys.argv.__sizeof__() == 1:
     port = int(sys.argv[1])
 else:
     pass
@@ -24,12 +24,10 @@ else:
 #needs to listen on port for new connections, add to connection list when new connection spawned
 def server_func(server, host, port):
     while True:
-      try:
-            # Accept new connections and store them in the connection list
-            client_socket, client_address = server.accept()
-            connections.append(client_address)
-            threading.Thread(target=incoming_message_handler, args=(client_socket, client_address)).start()
-      except Exception as e:
+        try:
+            connections.append((host, port))
+            ip_address, port = server.accept()
+        except Exception as e:
             print(f"Error accepting a connection: {e}")
         
 
@@ -46,21 +44,21 @@ def print_help():
     print("EXIT: terminate CrossTok and all active connections\n")
     print("\n")    
     
-def incoming_message_handler(client_socket, client_address):
+def incoming_message_handler(target_socket, sender_addr, sender_port):
     while True:
         try:
-            message = client_socket.recv(2048).decode('utf-8')
-            if not message:  # Check for empty message to detect disconnection
-                print(f"User {client_address[0]} on port {client_address[1]} disconnected")
+            message = target_socket.recv(2048).decode('utf-8')
+            if message == NULL:
+                print(f"User {sender_addr} on port {sender_port} disconnected")
                 break
-            print(f"Message from {client_address[0]}")
-            print(f"Sender's Port: {client_address[1]}")
+            print(f"Message from {sender_addr}")
+            print(f"Sender's Port: {sender_port}")
             print(f"Message: \"{message}\"")
         except Exception as e:
             print(f"Exception {e} caught")
             break
-    client_socket.close()
-    connections.remove(client_address)
+    target_socket.close()
+    connections.remove((sender_addr, sender_port))
     
 def client_func():
     return 0
@@ -98,7 +96,10 @@ def main():
                 print_help()
             elif (user_choice[0] == "CONNECT"):
                 target_ip = user_choice[1]
-                target_port = int(user_choice[2])
+                try:
+                     target_port = int(user_choice[2])
+                except ValueError:
+                     print("Invalid port number. Please enter a valid integer.")
                 try:
                     target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     target_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
