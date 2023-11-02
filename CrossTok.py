@@ -51,9 +51,10 @@ def recieve_connections():
     while True:
         try:
             client, address = client_socket.accept()
-            connections.append((client.getpeername(socket.gethostname()), port))
+            connections.append((address[0], address[1]))
             clients_list.append(client)
-        except 
+        except socket.error:
+            print("something went wrong with an attempted connection")
     
 def receive_messages():
     while True:
@@ -72,34 +73,44 @@ def receive_messages():
             print("socket must close, you will have to recreate the socket")
             client_socket.close()
             break
-   
-thread = threading.Thread(target=receive_messages)
-thread.start()
 
 def send_message(message):
     # encode and send the message
     client_socket.send(message.encode())
 
+#new
+# TODO: get send to work
+
+#old
 # TODO: make connect and list work
 # TODO: list should find all unique connected clients, store conn list in list
 # TODO: new connections establishing TCP link should be checked against list, then added if unique
 # TODO: connect should ping the target ip with TCP connection request which triggers addition to the connected clients list
 
 def main():
+    # create the thread for handeling new connections
+    thread1 = threading.Thread(target=recieve_connections)
+    thread1.start()
+    # create the thread for handeling new messages
+    #thread2 = threading.Thread(target=receive_messages)
+    #thread2.start()
+    # create the clear string lambda function and print the help screen for users to get started
     clear = lambda: os.system('cls' if os.name == 'nt' else clear)
     print_help()
     
     while True: 
         
+        # split the user input into substrings based on spaces
         print("CMD: ", end='')  
         user_choice = input()
         user_choice = user_choice.split()
         user_choice[0] = user_choice[0].upper()
         
+        # user command branch
         if (user_choice[0] == "MYIP"):
-            print("Your IP Address: " + socket.gethostbyname(socket.gethostname()) + "\n")
+            print("Your IP Address: " + host)
         elif (user_choice[0] == "MYPORT"):
-            print("Your port: " + str(port) + "\n")
+            print("Your port: " + str(port))
         elif (user_choice[0] == "HELP"):
             print_help()
         elif (user_choice[0] == "CONNECT"):
@@ -109,7 +120,7 @@ def main():
                     target_port = int(user_choice[2])
                     connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
-                    connection_socket.send("connection attempt")
+                    connection_socket.send("connection attempt".encode())
                     connections.append((target_ip, target_port))
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
                 except ValueError:
@@ -121,7 +132,7 @@ def main():
                 except ConnectionRefusedError:
                     print("the user you targeted refused your connection")
                 except Exception as e:
-                    print(f"Unknown Failure")
+                    print(f"Unknown Failure {e}")
             else:
                 print("\nplease see the help menu for information on how to use the connect command")
         elif (user_choice[0] == "LIST"):
@@ -142,7 +153,7 @@ def main():
                 conn_ip, conn_port = connections[conn_id]
                 message = user_choice[2:]
                 print(f"Sending to {conn_id}...")
-                conn_ip.send(message)
+                send_message(message)
             except Exception as e:
                 print("Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!")
         elif (user_choice[0] == "CLS"):
@@ -150,7 +161,7 @@ def main():
         elif (user_choice[0] == "SOCKET"):
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_socket.bind((host, port))
-            client_socket.listen()
+            client_socket.listen(5)
         elif (user_choice[0] == "EXIT"):
             try:
                 client_socket.sendall("EXIT".encode())
