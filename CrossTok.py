@@ -1,4 +1,5 @@
 from asyncio.windows_events import NULL
+from concurrent.futures import thread
 import socket
 import sys
 import os
@@ -74,9 +75,10 @@ def receive_messages():
             client_socket.close()
             break
 
-def send_message(message):
+def send_message(message: str, client: socket):
     # encode and send the message
-    client_socket.send(message.encode())
+    client.send(message.encode())
+    print("debug")
 
 #new
 # TODO: get send to work
@@ -92,8 +94,7 @@ def main():
     thread1 = threading.Thread(target=recieve_connections)
     thread1.start()
     # create the thread for handeling new messages
-    #thread2 = threading.Thread(target=receive_messages)
-    #thread2.start()
+    
     # create the clear string lambda function and print the help screen for users to get started
     clear = lambda: os.system('cls' if os.name == 'nt' else clear)
     print_help()
@@ -123,6 +124,8 @@ def main():
                     connection_socket.send("connection attempt".encode())
                     connections.append((target_ip, target_port))
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
+                    #thread2 = threading.Thread(target=receive_messages)
+                    #thread2.start()
                 except ValueError:
                     print("please ensure you are using the correct format for ip and port")
                 except socket.gaierror:
@@ -149,13 +152,16 @@ def main():
                 print("Did you enter an ip or wrong number? Try entering a valid connection\nCheck out LIST for valid entries")
         elif (user_choice[0] == "SEND"):
             try:
-                conn_id = int(user_choice[1])
-                conn_ip, conn_port = connections[conn_id]
-                message = user_choice[2:]
-                print(f"Sending to {conn_id}...")
-                send_message(message)
+                if (int(user_choice[1]) in range(len(connections))):
+                    conn_id = int(user_choice[1])
+                    conn_ip, conn_port = connections[conn_id]
+                    message = " ".join(user_choice[2:])
+                    print(f"Sending to {conn_id}...")
+                    send_message(message, clients_list[int(user_choice[1]) - 1])
+                else:
+                    print("please select a value in range of the id's listed")
             except Exception as e:
-                print("Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!")
+                print(f"Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!\n{e}")
         elif (user_choice[0] == "CLS"):
             clear()
         elif (user_choice[0] == "SOCKET"):
