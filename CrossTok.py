@@ -1,13 +1,13 @@
-from calendar import c
 import socket
 import sys
-import os
 import threading
 
 #TODO: implement a server socket and a client socket
 #TODO: server socket will bind, listen, accept, loop thru recv, send; close
 #TODO: client socket will connect, loop thru send, recv; close
 
+thread_stop1 = False
+thread_stop2 = False
 host = socket.gethostbyname(socket.gethostname())
 port = 5959
 max_conn = 10
@@ -46,7 +46,7 @@ def print_help():
     print("\n")  
     
 def recieve_connections():
-    while True:
+    while not thread_stop1:
         try:
             client, address = client_socket.accept()
             connections.append((address[0], address[1]))
@@ -57,9 +57,10 @@ def recieve_connections():
             print("\nruntime error with the message handler")
         except socket.error:
             print("\nsomething went wrong with an attempted connection")
+    print("thread1 kill")
     
 def receive_messages(socket: socket):
-    while True:
+    while not thread_stop2:
         try:
             message = socket.recv(buffer_size)
             message = message.decode()
@@ -67,6 +68,7 @@ def receive_messages(socket: socket):
                 try:
                     connections.remove(socket.getpeername())
                     clients_list.remove(socket)
+                    socket.close()
                 except ValueError:
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (socket.getpeername() in connections):
@@ -75,6 +77,7 @@ def receive_messages(socket: socket):
                 print("\nunkown user attempted to send message")
         except Exception as e:
             print(f"Error: {e}")
+    print("thread2 kill")
                 
 def is_sock_connected(socket: socket):
     try:
@@ -101,6 +104,8 @@ def main():
     # create the thread for handeling new connections
     thread1 = threading.Thread(target=recieve_connections)
     thread1.start()
+    global thread_stop1
+    global thread_stop2
     
     # create the clear string lambda function and print the help screen for users to get started
     print_help()
@@ -147,12 +152,20 @@ def main():
             print("Connection list: ")
             for i, (conn_ip, conn_port) in enumerate(connections, start=0):
                 print(f"ID: {i} IP: {conn_ip} Port: {conn_port}")
+            if (len(user_choice) == 2 and user_choice[1] == "sockets"):
+                print("Sockets list: ")
+                for i, socket in enumerate(clients_list, start=0):
+                    print(f"ID: {i} Socket: {socket}")
         elif (user_choice[0] == "TERMINATE"):
             try:
                 conn_id = int(user_choice[1])
-                conn_ip, conn_port = connections[conn_id]
-                print("Terminating connection with: " + conn_id)
-                connections.pop(conn_id)
+                if (0 <= conn_id <= len(connections) and 0 <= conn_id <= len(clients_list)):
+                    print(f"\nTerminating connection with: {conn_id}") 
+                    clients_list[conn_id].send("EXIT".encode())
+                    thread_stop2 = True
+                    clients_list[conn_id].close()
+                    clients_list.pop(conn_id)
+                    connections.pop(conn_id)
             except Exception as e:
                 print("Did you enter an ip or wrong number? Try entering a valid connection\nCheck out LIST for valid entries")
         elif (user_choice[0] == "SEND"):
@@ -177,6 +190,8 @@ def main():
             except:
                 print("nothing connected")
             print("Sorry to see you go!")
+            thread_stop1 = True
+            thread_stop2 = True
             quit()
         else:
             print("\n\nERROR: invalid entry\n\n")
