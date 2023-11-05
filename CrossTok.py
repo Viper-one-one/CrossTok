@@ -1,5 +1,4 @@
-from asyncio.windows_events import NULL
-from concurrent.futures import thread
+from calendar import c
 import socket
 import sys
 import os
@@ -54,23 +53,35 @@ def recieve_connections():
             client, address = client_socket.accept()
             connections.append((address[0], address[1]))
             clients_list.append(client)
+            thread2 = threading.Thread(target=receive_messages, args=(client,))
+            thread2.start()
+        except RuntimeError:
+            print("runtime error with the message handler")
         except socket.error:
             print("something went wrong with an attempted connection")
     
-def receive_messages():
+def receive_messages(socket: socket):
     while True:
         try:
-            message = client_socket.recv(buffer_size).decode()
+            message, client = socket.recvfrom(buffer_size)
+            message = message.decode()
             if (message.startswith("EXIT")):                          #if user disconnected
-                bytes_trash, remove_client = client_socket.recvfrom(buffer_size)     #(ip, port) tuple
                 try:
-                    connections.remove(remove_client[0])
+                    connections.remove(client[0])
+                    clients_list.remove(socket)
                 except ValueError:
                     print("a user tried to disconnect who did not exist in the connections list")
             else:
-                print(message)
+                print(f"User ID: {connections.index(client[0])}\nsays: {message}")
         except Exception as e:
             print(f"Error: {e}")
+                
+def is_sock_connected(socket: socket):
+    try:
+        socket.send("")
+        return True
+    except:
+        return False
 
 def send_message(message: str, client: socket):
     # encode and send the message
@@ -91,6 +102,7 @@ def main():
     # create the thread for handeling new connections
     thread1 = threading.Thread(target=recieve_connections)
     thread1.start()
+
     # create the thread for handeling new messages
     
     # create the clear string lambda function and print the help screen for users to get started
@@ -123,8 +135,6 @@ def main():
                     connections.append((target_ip, target_port))
                     clients_list.append(connection_socket)
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
-                    #thread2 = threading.Thread(target=receive_messages)
-                    #thread2.start()
                 except ValueError:
                     print("please ensure you are using the correct format for ip and port")
                 except socket.gaierror:
