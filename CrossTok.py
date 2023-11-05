@@ -55,7 +55,6 @@ def recieve_connections():
             print("\nruntime error with the message handler")
         except socket.error:
             print("\nsomething went wrong with an attempted connection")
-    print("thread1 kill")
     
 def receive_messages(client: socket):
     global socket
@@ -77,8 +76,7 @@ def receive_messages(client: socket):
             else:
                 print("\nunkown user attempted to send message")
         except Exception as e:
-            print(f"Error: {e}")
-    print("thread2 kill")
+                print(f"Error: {e}")
                 
 def is_sock_connected(client: socket):
     try:
