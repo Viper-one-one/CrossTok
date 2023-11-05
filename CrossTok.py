@@ -2,10 +2,6 @@ import socket
 import sys
 import threading
 
-#TODO: implement a server socket and a client socket
-#TODO: server socket will bind, listen, accept, loop thru recv, send; close
-#TODO: client socket will connect, loop thru send, recv; close
-
 thread_stop1 = False
 thread_stop2 = False
 host = socket.gethostbyname(socket.gethostname())
@@ -67,6 +63,7 @@ def receive_messages(client: socket):
             message = message.decode()
             if (message.startswith("EXIT")):                          #if user disconnected
                 try:
+                    print(f"client {clients_list.index(client)} has closed connection")
                     connections.remove(client.getpeername())
                     clients_list.remove(client)
                     client.close()
@@ -75,8 +72,6 @@ def receive_messages(client: socket):
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
-            else:
-                print("\nunkown user attempted to send message")
         except OSError as e:
             if (e.errno == 10053):
                 pass
@@ -102,7 +97,6 @@ def main():
     print_help()
     
     while True: 
-        
         # split the user input into substrings based on spaces
         print("CMD: ", end='')  
         user_choice = input()
@@ -142,7 +136,7 @@ def main():
                 except ConnectionRefusedError:
                     print("the user you targeted refused your connection")
                 except Exception as e:
-                    print(f"Unknown Failure {e}")
+                    print(f"Unknown Failure")
             else:
                 print("\nplease see the help menu for information on how to use the connect command")
         elif (user_choice[0] == "LIST"):
@@ -178,6 +172,8 @@ def main():
             except Exception as e:
                 print(f"Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!\n{e}")
         elif (user_choice[0] == "EXIT"):
+            thread_stop1 = True
+            thread_stop2 = True
             try:
                 for client in clients_list:
                     client.send("EXIT".encode())
@@ -189,8 +185,6 @@ def main():
                 print("nothing connected")
             print("Sorry to see you go!")
             client_socket.close()
-            thread_stop1 = True
-            thread_stop2 = True
             quit()
         else:
             print("\nERROR: invalid entry\n")
