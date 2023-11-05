@@ -179,7 +179,7 @@ def main():
             print("Sorry to see you go!")
             quit()
         else:
-            print("\n\nERROR: invalid entry\n\n")
+            print("\nERROR: invalid entry\n")
 
 if __name__ == "__main__":
     main()
