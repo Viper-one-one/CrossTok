@@ -46,6 +46,7 @@ def print_help():
     print("\n")  
     
 def recieve_connections():
+    global socket
     while not thread_stop1:
         try:
             client, address = client_socket.accept()
@@ -59,29 +60,30 @@ def recieve_connections():
             print("\nsomething went wrong with an attempted connection")
     print("thread1 kill")
     
-def receive_messages(socket: socket):
+def receive_messages(client: socket):
+    global socket
     while not thread_stop2:
         try:
-            message = socket.recv(buffer_size)
+            message = client.recv(buffer_size)
             message = message.decode()
             if (message.startswith("EXIT")):                          #if user disconnected
                 try:
-                    connections.remove(socket.getpeername())
-                    clients_list.remove(socket)
-                    socket.close()
+                    connections.remove(client.getpeername())
+                    clients_list.remove(client)
+                    client.close()
                 except ValueError:
                     print("\na user tried to disconnect who did not exist in the connections list")
-            elif (socket.getpeername() in connections):
-                print(f"\nUser ID: {connections.index(socket.getpeername())}\nsays: {message}")
+            elif (client.getpeername() in connections):
+                print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
             else:
                 print("\nunkown user attempted to send message")
         except Exception as e:
             print(f"Error: {e}")
     print("thread2 kill")
                 
-def is_sock_connected(socket: socket):
+def is_sock_connected(client: socket):
     try:
-        socket.send("")
+        client.send("")
         return True
     except:
         return False
@@ -106,6 +108,7 @@ def main():
     thread1.start()
     global thread_stop1
     global thread_stop2
+    global socket
     
     # create the clear string lambda function and print the help screen for users to get started
     print_help()
@@ -154,8 +157,8 @@ def main():
                 print(f"ID: {i} IP: {conn_ip} Port: {conn_port}")
             if (len(user_choice) == 2 and user_choice[1] == "sockets"):
                 print("Sockets list: ")
-                for i, socket in enumerate(clients_list, start=0):
-                    print(f"ID: {i} Socket: {socket}")
+                for i, client in enumerate(clients_list, start=0):
+                    print(f"ID: {i} Socket: {client}")
         elif (user_choice[0] == "TERMINATE"):
             try:
                 conn_id = int(user_choice[1])
