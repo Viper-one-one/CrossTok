@@ -61,10 +61,10 @@ def receive_messages():
     while True:
         try:
             message = client_socket.recv(buffer_size).decode()
-            if message.startswith("EXIT"):                          #if user disconnected
-                remove_id = client_socket.recvfrom(buffer_size)     #(ip, port) tuple
+            if (message.startswith("EXIT")):                          #if user disconnected
+                bytes_trash, remove_client = client_socket.recvfrom(buffer_size)     #(ip, port) tuple
                 try:
-                    connections.remove(remove_id)
+                    connections.remove(remove_client[0])
                 except ValueError:
                     print("a user tried to disconnect who did not exist in the connections list")
             else:
@@ -82,6 +82,7 @@ def send_message(message: str, client: socket):
 
 #new
 # TODO: get send to work
+# TODO: can connect to this computer but not my other computer
 
 #old
 # TODO: make connect and list work
@@ -123,6 +124,7 @@ def main():
                     connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
                     connection_socket.send("connection attempt".encode())
                     connections.append((target_ip, target_port))
+                    clients_list.append(connection_socket)
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
                     #thread2 = threading.Thread(target=receive_messages)
                     #thread2.start()
@@ -154,10 +156,10 @@ def main():
             try:
                 if (int(user_choice[1]) in range(len(connections))):
                     conn_id = int(user_choice[1])
-                    conn_ip, conn_port = connections[conn_id]
+                    #conn_ip, conn_port = connections[conn_id]
                     message = " ".join(user_choice[2:])
                     print(f"Sending to {conn_id}...")
-                    send_message(message, clients_list[int(user_choice[1]) - 1])
+                    send_message(message, clients_list[int(user_choice[1])])
                 else:
                     print("please select a value in range of the id's listed")
             except Exception as e:
