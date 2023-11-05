@@ -55,6 +55,7 @@ def recieve_connections():
             print("\nruntime error with the message handler")
         except socket.error:
             print("\nsomething went wrong with an attempted connection")
+    thread_stop1 = False
     
 def receive_messages(client: socket):
     global socket
@@ -82,6 +83,7 @@ def receive_messages(client: socket):
                 print(f"Error: {e}")
         except Exception as e:
                 print(f"Error: {e}")
+    thread_stop2 = False
 
 def send_message(message: str, client: socket):
     # encode and send the message
