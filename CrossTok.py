@@ -54,7 +54,8 @@ def recieve_connections():
         except RuntimeError:
             print("\nruntime error with the message handler")
         except socket.error:
-            print("\nsomething went wrong with an attempted connection")
+            if (not thread_stop1):
+                print("\nsomething went wrong with an attempted connection")
     thread_stop1 = False
     
 def receive_messages(client: socket):
@@ -187,6 +188,7 @@ def main():
             except:
                 print("nothing connected")
             print("Sorry to see you go!")
+            client_socket.close()
             thread_stop1 = True
             thread_stop2 = True
             quit()
