@@ -55,7 +55,6 @@ def recieve_connections():
             print("\nruntime error with the message handler")
         except socket.error:
             print("\nsomething went wrong with an attempted connection")
-    print("thread1 kill")
     
 def receive_messages(client: socket):
     global socket
@@ -77,29 +76,11 @@ def receive_messages(client: socket):
             else:
                 print("\nunkown user attempted to send message")
         except Exception as e:
-            print(f"Error: {e}")
-    print("thread2 kill")
-                
-def is_sock_connected(client: socket):
-    try:
-        client.send("")
-        return True
-    except:
-        return False
+                print(f"Error: {e}")
 
 def send_message(message: str, client: socket):
     # encode and send the message
     client.send(message.encode())
-
-#new
-# TODO: get users to see that users have sent a message
-# TODO: get client to recognize in list that a user has connected to them
-
-#old
-# TODO: make connect and list work
-# TODO: list should find all unique connected clients, store conn list in list
-# TODO: new connections establishing TCP link should be checked against list, then added if unique
-# TODO: connect should ping the target ip with TCP connection request which triggers addition to the connected clients list
 
 def main():
     # create the thread for handeling new connections
