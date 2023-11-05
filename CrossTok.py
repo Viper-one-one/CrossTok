@@ -47,6 +47,7 @@ def print_help():
     
 def recieve_connections():
     global socket
+    global thread_stop1
     while not thread_stop1:
         try:
             client, address = client_socket.accept()
@@ -62,6 +63,7 @@ def recieve_connections():
     
 def receive_messages(client: socket):
     global socket
+    global thread_stop2
     while not thread_stop2:
         try:
             message = client.recv(buffer_size)
@@ -71,6 +73,7 @@ def receive_messages(client: socket):
                     connections.remove(client.getpeername())
                     clients_list.remove(client)
                     client.close()
+                    thread_stop2 = True
                 except ValueError:
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
