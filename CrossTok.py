@@ -75,6 +75,11 @@ def receive_messages(client: socket):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
             else:
                 print("\nunkown user attempted to send message")
+        except OSError as e:
+            if (e.errno == 10053):
+                pass
+            else:
+                print(f"Error: {e}")
         except Exception as e:
                 print(f"Error: {e}")
 
@@ -168,10 +173,11 @@ def main():
                 print(f"Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!\n{e}")
         elif (user_choice[0] == "EXIT"):
             try:
-                client_socket.sendall("EXIT".encode())
-                client_socket.close()
+                for client in clients_list:
+                    client.send("EXIT".encode())
+                    clients_list.remove(client)
                 for connection in connections:
-                    connections.remove()
+                    connections.remove(connection)
                 print(f"Connections closed.")
             except:
                 print("nothing connected")
