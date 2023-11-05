@@ -67,6 +67,7 @@ def receive_messages(client: socket):
             message = message.decode()
             if (message.startswith("EXIT")):                          #if user disconnected
                 try:
+                    print(f"client {clients_list.index(client)} has closed connection")
                     connections.remove(client.getpeername())
                     clients_list.remove(client)
                     client.close()
@@ -75,8 +76,6 @@ def receive_messages(client: socket):
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
-            else:
-                print("\nunkown user attempted to send message")
         except OSError as e:
             if (e.errno == 10053):
                 pass
