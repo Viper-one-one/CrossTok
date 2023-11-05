@@ -187,6 +187,7 @@ def main():
             except:
                 print("nothing connected")
             print("Sorry to see you go!")
+            client_socket.close()
             thread_stop1 = True
             thread_stop2 = True
             quit()
