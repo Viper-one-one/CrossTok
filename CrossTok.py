@@ -71,9 +71,6 @@ def receive_messages():
                 print(message)
         except Exception as e:
             print(f"Error: {e}")
-            print("socket must close, you will have to recreate the socket")
-            client_socket.close()
-            break
 
 def send_message(message: str, client: socket):
     # encode and send the message
@@ -81,7 +78,8 @@ def send_message(message: str, client: socket):
     print("debug")
 
 #new
-# TODO: get send to work
+# TODO: get users to see that users have sent a message
+# TODO: get client to recognize in list that a user has connected to them
 
 #old
 # TODO: make connect and list work
@@ -123,6 +121,7 @@ def main():
                     connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
                     connection_socket.send("connection attempt".encode())
                     connections.append((target_ip, target_port))
+                    clients_list.append(connection_socket)
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
                     #thread2 = threading.Thread(target=receive_messages)
                     #thread2.start()
@@ -152,12 +151,12 @@ def main():
                 print("Did you enter an ip or wrong number? Try entering a valid connection\nCheck out LIST for valid entries")
         elif (user_choice[0] == "SEND"):
             try:
-                if (int(user_choice[1]) in range(len(connections))):
+                if (int(user_choice[1]) in range(0, len(connections))):
                     conn_id = int(user_choice[1])
-                    conn_ip, conn_port = connections[conn_id]
+                    #conn_ip, conn_port = connections[conn_id]
                     message = " ".join(user_choice[2:])
                     print(f"Sending to {conn_id}...")
-                    send_message(message, clients_list[int(user_choice[1]) - 1])
+                    send_message(message, clients_list[int(user_choice[1])])
                 else:
                     print("please select a value in range of the id's listed")
             except Exception as e:
