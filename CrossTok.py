@@ -61,10 +61,10 @@ def receive_messages():
     while True:
         try:
             message = client_socket.recv(buffer_size).decode()
-            if message.startswith("EXIT"):                          #if user disconnected
-                remove_id = client_socket.recvfrom(buffer_size)     #(ip, port) tuple
+            if (message.startswith("EXIT")):                          #if user disconnected
+                bytes_trash, remove_client = client_socket.recvfrom(buffer_size)     #(ip, port) tuple
                 try:
-                    connections.remove(remove_id)
+                    connections.remove(remove_client[0])
                 except ValueError:
                     print("a user tried to disconnect who did not exist in the connections list")
             else:
