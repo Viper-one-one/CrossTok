@@ -27,10 +27,6 @@ elif (len(sys.argv) > 2):
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.bind((host, port))
 client_socket.listen(5)
-
-
-#we'll use this socket to send messages out
-sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
 def print_help():
     print("******************* Welcome to CrossTok *****************\n")
