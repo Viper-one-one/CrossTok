@@ -42,8 +42,6 @@ def print_help():
     print("LIST: Display a numbered list of all connections CrossTok is using with an id number")
     print("TERMINATE: <connection id>: close connection denoted with <connection id>")
     print("SEND: <connection id> <message>: send a message to <connection id> with string <message>")
-    print("CLS: clears the current screen")
-    print("SOCKET: recreates the socket if a fatal error occured")
     print("EXIT: terminate CrossTok and all active connections\n")
     print("\n")  
     
@@ -56,23 +54,25 @@ def recieve_connections():
             thread2 = threading.Thread(target=receive_messages, args=(client,))
             thread2.start()
         except RuntimeError:
-            print("runtime error with the message handler")
+            print("\nruntime error with the message handler")
         except socket.error:
-            print("something went wrong with an attempted connection")
+            print("\nsomething went wrong with an attempted connection")
     
 def receive_messages(socket: socket):
     while True:
         try:
-            message, client = socket.recvfrom(buffer_size)
+            message = socket.recv(buffer_size)
             message = message.decode()
             if (message.startswith("EXIT")):                          #if user disconnected
                 try:
-                    connections.remove(client[0])
+                    connections.remove(socket.getpeername())
                     clients_list.remove(socket)
                 except ValueError:
-                    print("a user tried to disconnect who did not exist in the connections list")
+                    print("\na user tried to disconnect who did not exist in the connections list")
+            elif (socket.getpeername() in connections):
+                print(f"\nUser ID: {connections.index(socket.getpeername())}\nsays: {message}")
             else:
-                print(f"User ID: {connections.index(client[0])}\nsays: {message}")
+                print("\nunkown user attempted to send message")
         except Exception as e:
             print(f"Error: {e}")
                 
@@ -86,7 +86,6 @@ def is_sock_connected(socket: socket):
 def send_message(message: str, client: socket):
     # encode and send the message
     client.send(message.encode())
-    print("debug")
 
 #new
 # TODO: get users to see that users have sent a message
@@ -102,11 +101,8 @@ def main():
     # create the thread for handeling new connections
     thread1 = threading.Thread(target=recieve_connections)
     thread1.start()
-
-    # create the thread for handeling new messages
     
     # create the clear string lambda function and print the help screen for users to get started
-    clear = lambda: os.system('cls' if os.name == 'nt' else clear)
     print_help()
     
     while True: 
@@ -171,12 +167,6 @@ def main():
                     print("please select a value in range of the id's listed")
             except Exception as e:
                 print(f"Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!\n{e}")
-        elif (user_choice[0] == "CLS"):
-            clear()
-        elif (user_choice[0] == "SOCKET"):
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.bind((host, port))
-            client_socket.listen(5)
         elif (user_choice[0] == "EXIT"):
             try:
                 client_socket.sendall("EXIT".encode())
