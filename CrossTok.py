@@ -138,6 +138,9 @@ def main():
                     connection_socket.send("connection attempt".encode())
                     connections.append((target_ip, target_port))
                     clients_list.append(connection_socket)
+                    #start listening for messages from the newly connected client
+                    thread2 = threading.Thread(target=receive_messages, args=(connection_socket,))
+                    thread2.start()
                     print(f"Successfully Connected to : {target_ip}:{target_port}")
                 except ValueError:
                     print("please ensure you are using the correct format for ip and port")
