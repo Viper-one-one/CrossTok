@@ -120,15 +120,18 @@ def main():
                 target_ip = user_choice[1]
                 try:
                     target_port = int(user_choice[2])
-                    connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
-                    connection_socket.send("connection attempt".encode())
-                    connections.append((target_ip, target_port))
-                    clients_list.append(connection_socket)
-                    #start listening for messages from the newly connected client
-                    thread2 = threading.Thread(target=receive_messages, args=(connection_socket,))
-                    thread2.start()
-                    print(f"Successfully Connected to : {target_ip}:{target_port}")
+                    if ((target_ip, target_port) in connections):
+                        print("you are already connected to that user")
+                    else:
+                        connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
+                        connection_socket.send("connection attempt".encode())
+                        connections.append((target_ip, target_port))
+                        clients_list.append(connection_socket)
+                        #start listening for messages from the newly connected client
+                        thread2 = threading.Thread(target=receive_messages, args=(connection_socket,))
+                        thread2.start()
+                        print(f"Successfully Connected to : {target_ip}:{target_port}")
                 except ValueError:
                     print("please ensure you are using the correct format for ip and port")
                 except socket.gaierror:
