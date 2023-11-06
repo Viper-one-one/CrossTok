@@ -2,10 +2,6 @@ import socket
 import sys
 import threading
 
-#TODO: implement a server socket and a client socket
-#TODO: server socket will bind, listen, accept, loop thru recv, send; close
-#TODO: client socket will connect, loop thru send, recv; close
-
 thread_stop1 = False
 thread_stop2 = False
 host = socket.gethostbyname(socket.gethostname())
@@ -76,13 +72,13 @@ def receive_messages(client: socket):
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
-        except OSError as e:
-            if (e.errno == 10053 or e.errno == 10054):
-                pass
-            else:
-                print(f"OS Error: {e}")
+        except OSError:
+            connections.remove(client.getpeername())
+            clients_list.remove(client)
+            client.close()
+            thread_stop2 = True
         except Exception as e:
-                print(f"Error: {e}")
+            print(f"Error: {e}")
     thread_stop2 = False
 
 def send_message(message: str, client: socket):
@@ -101,7 +97,6 @@ def main():
     print_help()
     
     while True: 
-        
         # split the user input into substrings based on spaces
         print("CMD: ", end='')  
         user_choice = input()
@@ -141,7 +136,7 @@ def main():
                 except ConnectionRefusedError:
                     print("the user you targeted refused your connection")
                 except Exception as e:
-                    print(f"Unknown Failure {e}")
+                    print(f"Unknown Failure")
             else:
                 print("\nplease see the help menu for information on how to use the connect command")
         elif (user_choice[0] == "LIST"):
@@ -158,6 +153,7 @@ def main():
                 if (0 <= conn_id <= len(connections) and 0 <= conn_id <= len(clients_list)):
                     print(f"\nTerminating connection with: {conn_id}") 
                     clients_list[conn_id].send("EXIT".encode())
+                    #this causes all threads to stop?
                     thread_stop2 = True
                     clients_list[conn_id].close()
                     clients_list.pop(conn_id)
@@ -177,6 +173,8 @@ def main():
             except Exception as e:
                 print(f"Uh-oh, looks like something went wrong!\nCheck the id you entered and try again!\n{e}")
         elif (user_choice[0] == "EXIT"):
+            thread_stop1 = True
+            thread_stop2 = True
             try:
                 for client in clients_list:
                     client.send("EXIT".encode())
@@ -188,8 +186,6 @@ def main():
                 print("nothing connected")
             print("Sorry to see you go!")
             client_socket.close()
-            thread_stop1 = True
-            thread_stop2 = True
             quit()
         else:
             print("\nERROR: invalid entry\n")
