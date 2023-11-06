@@ -72,13 +72,13 @@ def receive_messages(client: socket):
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
-        except OSError as e:
-            if (e.errno == 10053):
-                pass
-            else:
-                print(f"Error: {e}")
+        except OSError:
+            connections.remove(client.getpeername())
+            clients_list.remove(client)
+            client.close()
+            thread_stop2 = True
         except Exception as e:
-                print(f"Error: {e}")
+            print(f"Error: {e}")
     thread_stop2 = False
 
 def send_message(message: str, client: socket):
