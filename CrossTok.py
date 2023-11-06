@@ -9,7 +9,7 @@ import threading
 thread_stop1 = False
 thread_stop2 = False
 host = socket.gethostbyname(socket.gethostname())
-listen_port = 5959
+port = 5959
 max_conn = 10
 buffer_size = 1024
 connections = []    #stored as (IP, Port) pairs
