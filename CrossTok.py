@@ -65,7 +65,7 @@ def receive_messages(client: socket):
         try:
             message = client.recv(buffer_size)
             message = message.decode()
-            if (message.startswith("EXIT")):                          #if user disconnected
+            if (message.startswith("EXIT")):                          #if user sent disconnect message
                 try:
                     print(f"client {clients_list.index(client)} has closed connection")
                     connections.remove(client.getpeername())
@@ -77,10 +77,10 @@ def receive_messages(client: socket):
             elif (client.getpeername() in connections):
                 print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
         except OSError as e:
-            if (e.errno == 10053):
+            if (e.errno == 10053 or e.errno == 10054):
                 pass
             else:
-                print(f"Error: {e}")
+                print(f"OS Error: {e}")
         except Exception as e:
                 print(f"Error: {e}")
     thread_stop2 = False
@@ -125,7 +125,7 @@ def main():
                     else:
                         connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
-                        connection_socket.send("connection attempt".encode())
+                        connection_socket.send("connected".encode())
                         connections.append((target_ip, target_port))
                         clients_list.append(connection_socket)
                         #start listening for messages from the newly connected client
