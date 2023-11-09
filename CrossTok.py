@@ -45,6 +45,7 @@ def recieve_connections():
             client, address = client_socket.accept()
             connections.append((address[0], address[1]))
             clients_list.append(client)
+            print("a new user has connected")
             thread2 = threading.Thread(target=receive_messages, args=(client,))
             thread2.start()
         except RuntimeError:
