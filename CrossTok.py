@@ -43,11 +43,14 @@ def recieve_connections():
     while not thread_stop1:
         try:
             client, address = client_socket.accept()
-            connections.append((address[0], address[1]))
-            clients_list.append(client)
-            print("a new user has connected")
-            thread2 = threading.Thread(target=receive_messages, args=(client,))
-            thread2.start()
+            if (address not in clients_list):
+                connections.append((address[0], address[1]))
+                clients_list.append(client)
+                print("a new user has connected")
+                thread2 = threading.Thread(target=receive_messages, args=(client,))
+                thread2.start()
+            else:
+                print("user you connected to tried to connect again")
         except RuntimeError:
             print("\nruntime error with the message handler")
         except socket.error:
