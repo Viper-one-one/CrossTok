@@ -1,3 +1,4 @@
+from tabulate import tabulate
 import socket
 import sys
 import threading
@@ -37,7 +38,7 @@ def print_help():
     print("EXIT: terminate CrossTok and all active connections\n")
     print("\n")  
     
-def recieve_connections():
+def receive_connections():
     global socket
     global thread_stop1
     while not thread_stop1:
@@ -46,8 +47,9 @@ def recieve_connections():
             if (address not in clients_list):
                 connections.append((address[0], address[1]))
                 clients_list.append(client)
-                print("a new user has connected")
+                print("\na new user has connected")
                 thread2 = threading.Thread(target=receive_messages, args=(client,))
+                thread2.daemon = True
                 thread2.start()
             else:
                 print("user you connected to tried to connect again")
@@ -67,7 +69,7 @@ def receive_messages(client: socket):
             message = message.decode()
             if (message.startswith("EXIT")):                          #if user sent disconnect message
                 try:
-                    print(f"client {clients_list.index(client)} has closed connection")
+                    print(f"\nclient {clients_list.index(client)} has closed connection")
                     connections.remove(client.getpeername())
                     clients_list.remove(client)
                     client.close()
@@ -75,11 +77,15 @@ def receive_messages(client: socket):
                 except ValueError:
                     print("\na user tried to disconnect who did not exist in the connections list")
             elif (client.getpeername() in connections):
-                print(f"\nUser ID: {connections.index(client.getpeername())}\nsays: {message}")
+                client_ip, client_port = client.getpeername()
+                print(f"\nMessage received from {client_ip}\nSender's Port: {client_port}\nMessage: \"{message}\"")
         except OSError:
-            connections.remove(client.getpeername())
-            clients_list.remove(client)
-            client.close()
+            try:
+                connections.remove(client.getpeername())
+                clients_list.remove(client)
+                client.close()
+            except:
+                pass
             thread_stop2 = True
         except Exception as e:
             print(f"Error: {e}")
@@ -91,7 +97,8 @@ def send_message(message: str, client: socket):
 
 def main():
     # create the thread for handeling new connections
-    thread1 = threading.Thread(target=recieve_connections)
+    thread1 = threading.Thread(target=receive_connections)
+    thread1.daemon = True
     thread1.start()
     global thread_stop1
     global thread_stop2
@@ -106,7 +113,7 @@ def main():
         user_choice = input()
         user_choice = user_choice.split()
         user_choice[0] = user_choice[0].upper()
-        
+            
         # user command branch
         if (user_choice[0] == "MYIP"):
             print("Your IP Address: " + host)
@@ -120,7 +127,7 @@ def main():
                 try:
                     target_port = int(user_choice[2])
                     if ((target_ip, target_port) in connections):
-                        print("you are already connected to that user")
+                        print("\nyou are already connected to that user")
                     else:
                         connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
@@ -145,8 +152,7 @@ def main():
                 print("\nplease see the help menu for information on how to use the connect command")
         elif (user_choice[0] == "LIST"):
             print("Connection list: ")
-            for i, (conn_ip, conn_port) in enumerate(connections, start=0):
-                print(f"ID: {i} IP: {conn_ip} Port: {conn_port}")
+            print(tabulate(connections, headers=['ID', 'IP', 'Port'], showindex="always"))
             if (len(user_choice) == 2 and user_choice[1] == "sockets"):
                 print("Sockets list: ")
                 for i, client in enumerate(clients_list, start=0):
@@ -157,7 +163,6 @@ def main():
                 if (0 <= conn_id <= len(connections) and 0 <= conn_id <= len(clients_list)):
                     print(f"\nTerminating connection with: {conn_id}") 
                     clients_list[conn_id].send("EXIT".encode())
-                    #this causes all threads to stop?
                     thread_stop2 = True
                     clients_list[conn_id].close()
                     clients_list.pop(conn_id)
