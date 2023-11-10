@@ -44,7 +44,7 @@ def receive_connections():
     while not thread_stop1:
         try:
             client, address = client_socket.accept()
-            if (address not in clients_list):
+            if (address not in connections):
                 connections.append((address[0], address[1]))
                 clients_list.append(client)
                 print("\na new user has connected")
@@ -137,7 +137,7 @@ def main():
                         #start listening for messages from the newly connected client
                         thread2 = threading.Thread(target=receive_messages, args=(connection_socket,))
                         thread2.start()
-                        print(f"Successfully Connected to : {target_ip}:{target_port}")
+                        print(f"Successfully Connected to: {target_ip}:{target_port}")
                 except ValueError:
                     print("please ensure you are using the correct format for ip and port")
                 except socket.gaierror:
@@ -194,7 +194,10 @@ def main():
             except:
                 print("nothing connected")
             print("Sorry to see you go!")
-            client_socket.close()
+            try:
+                client_socket.close()
+            except:
+                pass
             quit()
         else:
             print("\nERROR: invalid entry\n")
