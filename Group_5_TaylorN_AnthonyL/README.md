@@ -20,8 +20,12 @@
 ### A User Experience
 1. If python is not installed on your computer, [download](https://www.python.org/downloads/) it
 	- Follow the instructions for installation
-2. Open CMD or Terminal
-3. Navigate to the folder with CrossTok.py in CMD
+2. Open CMD or Terminal, navigate to the folder containing CrossTok.py
+3. Run `pip install cx_freeze` and/or `pip install tabulate` in a CMD terminal opened to the location your download for CrossTok.py is
+	- There is a dependency issue for these two imports that must be resolved (discovered 11/12/2023)
+	- If you want to run CrossTok.py, only `pip install tabulate` is required
+	- If the exe is causing problems, you will need to rebuild the exe and run setup.py, you will then need to use `pip install cx_freeze`
+	- Sometimes the exe works without needing a rebuild 
 4. Type the command: `python CrossTok.py` or `python CrossTok.py <desired port number>`
 	- The program contains a default port of 5959
  	- Please note that if you have a NAT device between the two devices or a firewall active on either device, you will not be able to use the program
