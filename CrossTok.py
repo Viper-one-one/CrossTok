@@ -132,11 +132,12 @@ def main():
                     else:
                         connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         connection_socket.connect((target_ip, target_port))                         #failed due to str cannot be interpreted as integer
-                        connection_socket.send("connected".encode())
+                        send_message(f"{host}:{port} wants to talk!", connection_socket)
                         connections.append((target_ip, target_port))
                         clients_list.append(connection_socket)
                         #start listening for messages from the newly connected client
                         thread2 = threading.Thread(target=receive_messages, args=(connection_socket,))
+                        thread2.daemon = True
                         thread2.start()
                         print(f"Successfully Connected to: {target_ip}:{target_port}")
                 except ValueError:
