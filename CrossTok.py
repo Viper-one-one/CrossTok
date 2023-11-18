@@ -6,8 +6,9 @@ import threading
 thread_stop1 = False
 thread_stop2 = False
 host = socket.gethostbyname(socket.gethostname())
+exit_string: str = "!@!#5588%cross"
 port = 5959
-max_conn = 10
+max_conn = 5
 buffer_size = 1024
 connections = []    #stored as (IP, Port) pairs
 clients_list = []   #contains sockets as items
@@ -23,7 +24,7 @@ elif (len(sys.argv) > 2):
 #we'll use this socket to listen
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.bind((host, port))
-client_socket.listen(5)
+client_socket.listen(max_conn)
         
 def print_help():
     print("******************* Welcome to CrossTok *****************\n")
@@ -67,7 +68,7 @@ def receive_messages(client: socket):
         try:
             message = client.recv(buffer_size)
             message = message.decode()
-            if (message.startswith("EXIT")):                          #if user sent disconnect message
+            if (message.startswith(exit_string)):                          #if user sent disconnect message
                 try:
                     print(f"\nclient {clients_list.index(client)} has closed connection")
                     connections.remove(client.getpeername())
@@ -162,7 +163,7 @@ def main():
                 conn_id = int(user_choice[1])
                 if (0 <= conn_id <= len(connections) and 0 <= conn_id <= len(clients_list)):
                     print(f"\nTerminating connection with: {conn_id}") 
-                    clients_list[conn_id].send("EXIT".encode())
+                    send_message(exit_string, clients_list[conn_id])
                     thread_stop2 = True
                     clients_list[conn_id].close()
                     clients_list.pop(conn_id)
@@ -186,7 +187,7 @@ def main():
             thread_stop2 = True
             try:
                 for client in clients_list:
-                    client.send("EXIT".encode())
+                    send_message(exit_string, client)
                     clients_list.remove(client)
                 for connection in connections:
                     connections.remove(connection)
